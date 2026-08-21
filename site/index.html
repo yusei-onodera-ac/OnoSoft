@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>おのソフト — Windows向けフリーソフト</title>
+<meta name="description" content="おのソフトは、Windows向けの小さくて便利なフリーソフトを配信しています。">
+<style>
+  :root {
+    --bg: #1E1F26;
+    --panel: #2A2B36;
+    --accent: #5B8CFF;
+    --text: #F0F1F5;
+    --subtext: #9A9CAC;
+    --hover: #353748;
+    --border: #3A3C4A;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+  header {
+    padding: 64px 24px 40px;
+    text-align: center;
+  }
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: var(--accent);
+    color: var(--panel);
+    font-weight: 700;
+    font-size: 26px;
+    margin-bottom: 18px;
+  }
+  h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+  }
+  header p {
+    color: var(--subtext);
+    margin: 0;
+  }
+  main {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+    margin-top: 24px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .card .icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--accent);
+    color: var(--panel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 20px;
+  }
+  .card h2 {
+    margin: 0;
+    font-size: 17px;
+  }
+  .card p {
+    margin: 0;
+    color: var(--subtext);
+    font-size: 14px;
+    flex-grow: 1;
+  }
+  .card .links {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .btn.primary {
+    background: var(--accent);
+    color: var(--panel);
+  }
+  .btn.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn:hover { filter: brightness(1.1); }
+  .card.coming-soon {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-style: dashed;
+    color: var(--subtext);
+    min-height: 140px;
+  }
+  .notice {
+    margin-top: 40px;
+    padding: 16px 20px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--subtext);
+    font-size: 13px;
+  }
+  footer {
+    text-align: center;
+    padding: 32px 24px;
+    color: var(--subtext);
+    font-size: 13px;
+  }
+  footer a { color: var(--subtext); }
+  section h3 {
+    font-size: 15px;
+    color: var(--subtext);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 40px 0 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">お</div>
+  <h1>おのソフト</h1>
+  <p>Windows向けの、小さくて便利なフリーソフトをつくっています。</p>
+</header>
+
+<main>
+  <section>
+    <div class="grid">
+      <div class="card">
+        <div class="icon">C</div>
+        <h2>クリップボード履歴マネージャー</h2>
+        <p>コピーしたテキスト・画像を自動で記録し、<code>Ctrl+Shift+V</code> でいつでも呼び出せるタスクトレイ常駐アプリです。</p>
+        <div class="links">
+          <!-- 実際のリリースが公開されたらリンク先を更新してください -->
+          <a class="btn primary" href="https://github.com/YOUR_ACCOUNT/YOUR_REPO/releases/latest">ダウンロード</a>
+          <a class="btn secondary" href="https://github.com/YOUR_ACCOUNT/YOUR_REPO">GitHub</a>
+        </div>
+      </div>
+
+      <div class="card coming-soon">
+        次のアプリ、準備中です
+      </div>
+    </div>
+  </section>
+
+  <div class="notice">
+    ⚠️ 配布物にはコード署名を行っていないため、初回起動時に Windows SmartScreen の警告が表示される場合があります。
+    「詳細情報」→「実行」で起動できます。
+  </div>
+</main>
+
+<footer>
+  <p>© 2026 おのソフト ／ <a href="https://github.com/YOUR_ACCOUNT">GitHub</a></p>
+</footer>
+
+</body>
+</html>

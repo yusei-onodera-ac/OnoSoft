@@ -1,0 +1,13 @@
+# ビルド生成物
+bin/
+obj/
+publish/
+*.user
+
+# IDE
+.vs/
+.idea/
+
+# OS
+Thumbs.db
+.claude/

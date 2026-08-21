@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>NewApp</AssemblyName>
+    <RootNamespace>NewApp</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Version>1.0.0</Version>
+    <Company>おのソフト</Company>
+    <Product>NewApp</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- コピー後、フォルダごと src/ 配下へ移動してから相対パスを調整してください -->
+    <ProjectReference Include="..\OnoSoft.Shared\OnoSoft.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

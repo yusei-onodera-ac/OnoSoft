@@ -1,0 +1,94 @@
+<Window x:Class="ClipboardHistoryManager.Views.HistoryPopup"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="クリップボード履歴"
+        Width="380" Height="540"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        Topmost="True"
+        ResizeMode="NoResize"
+        Deactivated="Window_Deactivated"
+        KeyDown="Window_KeyDown">
+
+    <Border Style="{StaticResource OnoSoftPopupBorderStyle}">
+        <Grid Margin="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="クリップボード履歴" Foreground="{StaticResource TextBrush}"
+                       FontSize="15" FontWeight="SemiBold" Margin="2,0,0,8"/>
+
+            <TextBox x:Name="SearchBox" Grid.Row="1" Height="30" Padding="8,5"
+                     Background="{StaticResource PanelBrush}" Foreground="{StaticResource TextBrush}"
+                     BorderThickness="0" CaretBrush="{StaticResource TextBrush}"
+                     TextChanged="SearchBox_TextChanged" Margin="0,0,0,8"/>
+
+            <ListBox x:Name="HistoryList" Grid.Row="2" Background="Transparent" BorderThickness="0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     MouseDoubleClick="HistoryList_MouseDoubleClick">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Margin" Value="0,0,0,6"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border x:Name="itemBorder" Background="{StaticResource PanelBrush}" CornerRadius="6" Padding="8">
+                                        <ContentPresenter/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="itemBorder" Property="Background" Value="{StaticResource HoverBrush}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="itemBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                            <Setter TargetName="itemBorder" Property="BorderThickness" Value="1"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Preview}"
+                                       Visibility="{Binding IsText, Converter={StaticResource BoolToVis}}"
+                                       Foreground="{StaticResource TextBrush}" TextWrapping="Wrap"
+                                       MaxHeight="60" FontSize="13"/>
+
+                            <Image Grid.Row="0" Grid.Column="0" Source="{Binding Thumbnail}"
+                                   Visibility="{Binding IsImage, Converter={StaticResource BoolToVis}}"
+                                   MaxHeight="90" HorizontalAlignment="Left" Stretch="Uniform"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding TimeLabel}"
+                                       Foreground="{StaticResource SubTextBrush}" FontSize="10" Margin="0,4,0,0"/>
+
+                            <Button Grid.Row="0" Grid.Column="1" Style="{StaticResource OnoSoftIconButtonStyle}"
+                                    Content="{Binding PinLabel}" Click="PinButton_Click" ToolTip="ピン留め"/>
+                            <Button Grid.Row="0" Grid.Column="2" Style="{StaticResource OnoSoftIconButtonStyle}"
+                                    Content="🗑" Click="DeleteButton_Click" ToolTip="削除"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+    </Border>
+</Window>
