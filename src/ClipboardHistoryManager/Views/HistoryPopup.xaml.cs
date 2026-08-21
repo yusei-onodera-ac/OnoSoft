@@ -65,6 +65,30 @@ public partial class HistoryPopup : Window
             PrepareAndShow(previousForegroundWindow);
     }
 
+    /// <summary>現在「常に表示」中で、実際に表示されているか。</summary>
+    public bool IsPinnedOpen => _keepOpen && IsVisible;
+
+    /// <summary>
+    /// 通常の閲覧モードで開き、最初から「常に表示」を有効にする。
+    /// Ctrl+Shift だけをタップして離すジェスチャーから呼ばれる。
+    /// </summary>
+    public void ShowKeepingOpen(IntPtr previousForegroundWindow)
+    {
+        PrepareAndShow(previousForegroundWindow);
+        _keepOpen = true;
+        KeepOpenButton.Content = "📌";
+        KeepOpenButton.ToolTip = "常に表示中(もう一度押すと解除)";
+    }
+
+    /// <summary>「常に表示」を解除して閉じる。同じジェスチャーをもう一度行ったときに呼ばれる。</summary>
+    public void HideAndUnpin()
+    {
+        _keepOpen = false;
+        KeepOpenButton.Content = "📍";
+        KeepOpenButton.ToolTip = "常に表示(他をクリックしても閉じない)";
+        Hide();
+    }
+
     /// <summary>
     /// Alt+Tab スタイルの候補切り替えを開始する。ポップアップを表示し、最新の項目をハイライトする。
     /// 呼び出し側(App)は物理的な Ctrl/Shift キーが離されたタイミングで <see cref="CommitCycle"/> を呼ぶ。

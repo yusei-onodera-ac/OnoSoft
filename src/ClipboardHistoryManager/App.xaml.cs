@@ -1,6 +1,5 @@
 using System;
 using System.Windows;
-using System.Windows.Threading;
 using ClipboardHistoryManager.Models;
 using ClipboardHistoryManager.Services;
 using ClipboardHistoryManager.Views;
@@ -15,12 +14,12 @@ namespace ClipboardHistoryManager;
 
 public partial class App : System.Windows.Application
 {
-    private const int HotkeyId = 1;
-    private const uint VK_V = 0x56;
+    private const int VK_V = 0x56;
     private const string GitHubOwner = "yusei-onodera-ac";
     private const string GitHubRepo = "OnoSoft";
 
     private BackgroundMessageWindow? _messageWindow;
+    private LowLevelKeyboardHook? _keyboardHook;
     private HistoryStore? _store;
     private ClipboardMonitor? _clipboardMonitor;
     private TrayIconService? _trayIcon;
@@ -30,16 +29,18 @@ public partial class App : System.Windows.Application
     private JsonSettingsStore<ClipboardManagerSettings>? _settingsStore;
     private ClipboardManagerSettings _settings = new();
 
-    // Ctrl+Shift+V を押しっぱなしにして V を連打すると、Alt+Tab のように候補を送り、
-    // 修飾キーを離した瞬間に確定して貼り付ける。
+    // Ctrl+Shift の使い分け:
+    //   ・Ctrl+Shift だけをタップしてすぐ離す     → 常に表示のオン/オフを切り替える
+    //   ・Ctrl+Shift を押したまま V を(連打)する   → 候補選択モード。離した瞬間に確定貼り付け(従来どおり)
     //
-    // 実装メモ: RegisterHotKey の WM_HOTKEY は、Ctrl+Shift を押したまま V を連打しても
-    // 物理的なキー押下のたびにきちんと再発火する(Windowsのメッセージキューに溜まるので
-    // 処理が多少遅れても取りこぼさない)。そのためVキーの「次へ進める」判定は WM_HOTKEY の
-    // 再発火をそのまま使う。一方 WM_HOTKEY には対応するキーアップ通知が無いため、
-    // Ctrl/Shiftが離されたか(=確定するタイミング)は GetAsyncKeyState の軽いポーリングで見る。
+    // RegisterHotKey は「Ctrl+Shift+V」のような特定の組み合わせでしか通知が来ず、
+    // 「Ctrl+Shiftだけ押して離した(Vには触れていない)」を検知できない。
+    // そのため低レベルキーボードフックで全キーの押下/解放を監視し、
+    // Ctrl+Shiftを両方押している間に他のキーが押されたかどうかで判定する。
+    private bool _ctrlDown;
+    private bool _shiftDown;
+    private bool _otherKeyPressedDuringHold;
     private bool _isCycling;
-    private DispatcherTimer? _modifierWatchTimer;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -56,23 +57,15 @@ public partial class App : System.Windows.Application
         _popup.CycleCancelled += OnCycleCancelled;
         _popup.SettingsRequested += OnSettingsRequested;
         // 初回表示の描画コスト(数百ms)を画面外で先に払っておく。ここで払わないと、
-        // 最初のサイクル操作中にUIスレッドがブロックされてキー入力を取りこぼす。
+        // 最初のジェスチャー操作中にUIスレッドがブロックされてキー入力を取りこぼす。
         _popup.WarmUp();
 
         _messageWindow.StartClipboardListener();
-        if (!_messageWindow.RegisterHotkey(HotkeyId, NativeMethods.MOD_CONTROL | NativeMethods.MOD_SHIFT, VK_V))
-        {
-            MessageBox.Show(
-                "ホットキー Ctrl+Shift+V は他のアプリで既に使用されています。\n" +
-                "タスクトレイアイコンから履歴を開いてください。",
-                "クリップボード履歴マネージャー",
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
-        }
-        _messageWindow.HotkeyPressed += id =>
-        {
-            if (id == HotkeyId) OnHotkeyRepeat();
-        };
+
+        _keyboardHook = new LowLevelKeyboardHook();
+        _keyboardHook.KeyDown += OnGlobalKeyDown;
+        _keyboardHook.KeyUp += OnGlobalKeyUp;
+        _keyboardHook.Start();
 
         var icon = IconFactory.CreateGlyphIcon("C");
         var menuItems = new[]
@@ -90,22 +83,72 @@ public partial class App : System.Windows.Application
         _ = CheckForUpdatesOnStartupAsync();
     }
 
-    /// <summary>
-    /// グローバルホットキーが発火するたびに呼ばれる。1回目はサイクル開始(ポップアップ表示+
-    /// 最新項目をハイライト)、Ctrl+Shiftを押したままの2回目以降のV押下はハイライトを次の候補へ進める。
-    /// </summary>
-    private void OnHotkeyRepeat()
+    private static bool IsControlKey(int vk) => vk is 0x11 or 0xA2 or 0xA3; // VK_CONTROL / VK_LCONTROL / VK_RCONTROL
+    private static bool IsShiftKey(int vk) => vk is 0x10 or 0xA0 or 0xA1;   // VK_SHIFT / VK_LSHIFT / VK_RSHIFT
+
+    private void OnGlobalKeyDown(int vk)
     {
-        if (!_isCycling)
+        if (IsControlKey(vk)) { _ctrlDown = true; return; }
+        if (IsShiftKey(vk)) { _shiftDown = true; return; }
+
+        if (!_ctrlDown || !_shiftDown) return; // Ctrl+Shiftを両方押している間の他キーだけを見る
+
+        _otherKeyPressedDuringHold = true;
+
+        if (vk == VK_V)
         {
-            _isCycling = true;
-            var foreground = NativeMethods.GetForegroundWindow();
-            _popup?.BeginCycle(foreground);
-            StartModifierWatch();
+            if (!_isCycling)
+            {
+                _isCycling = true;
+                var foreground = NativeMethods.GetForegroundWindow();
+                _popup?.BeginCycle(foreground);
+            }
+            else
+            {
+                _popup?.AdvanceCycle();
+            }
+        }
+    }
+
+    private void OnGlobalKeyUp(int vk)
+    {
+        var wasCtrl = IsControlKey(vk);
+        var wasShift = IsShiftKey(vk);
+        if (!wasCtrl && !wasShift) return;
+
+        var wasBothDown = _ctrlDown && _shiftDown;
+        if (wasCtrl) _ctrlDown = false;
+        if (wasShift) _shiftDown = false;
+
+        // Ctrl+Shiftを両方押していた状態から、どちらか一方でも離れた瞬間だけ処理する
+        if (!wasBothDown || (_ctrlDown && _shiftDown)) return;
+
+        if (_isCycling)
+        {
+            _isCycling = false;
+            _popup?.CommitCycle();
+        }
+        else if (!_otherKeyPressedDuringHold)
+        {
+            // Ctrl+Shiftだけをタップして離した(他のキーには一切触れていない) → 常に表示を切り替え
+            TogglePinnedOpen();
+        }
+
+        _otherKeyPressedDuringHold = false;
+    }
+
+    private void TogglePinnedOpen()
+    {
+        if (_popup is null) return;
+
+        if (_popup.IsPinnedOpen)
+        {
+            _popup.HideAndUnpin();
         }
         else
         {
-            _popup?.AdvanceCycle();
+            var foreground = NativeMethods.GetForegroundWindow();
+            _popup.ShowKeepingOpen(foreground);
         }
     }
 
@@ -116,32 +159,7 @@ public partial class App : System.Windows.Application
         _popup?.ToggleVisibility(foreground);
     }
 
-    /// <summary>Ctrl または Shift が離されたかを軽くポーリングし、離れたらサイクルを確定する。</summary>
-    private void StartModifierWatch()
-    {
-        _modifierWatchTimer ??= new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) };
-        _modifierWatchTimer.Tick -= ModifierWatchTimer_Tick;
-        _modifierWatchTimer.Tick += ModifierWatchTimer_Tick;
-        _modifierWatchTimer.Start();
-    }
-
-    private void StopModifierWatch() => _modifierWatchTimer?.Stop();
-
-    private void ModifierWatchTimer_Tick(object? sender, EventArgs e)
-    {
-        if (NativeMethods.IsKeyDown(NativeMethods.VK_CONTROL) && NativeMethods.IsKeyDown(NativeMethods.VK_SHIFT))
-            return; // まだ押されたまま
-
-        StopModifierWatch();
-        _isCycling = false;
-        _popup?.CommitCycle();
-    }
-
-    private void OnCycleCancelled()
-    {
-        _isCycling = false;
-        StopModifierWatch();
-    }
+    private void OnCycleCancelled() => _isCycling = false;
 
     private void OnClearHistoryRequested()
     {
@@ -195,7 +213,7 @@ public partial class App : System.Windows.Application
 
     protected override void OnExit(ExitEventArgs e)
     {
-        StopModifierWatch();
+        _keyboardHook?.Dispose();
         _trayIcon?.Dispose();
         _messageWindow?.Dispose();
         _popup?.Close();
