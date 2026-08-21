@@ -11,7 +11,7 @@
     <RootNamespace>ClipboardHistoryManager</RootNamespace>
     <LangVersion>latest</LangVersion>
     <ApplicationTitle>クリップボード履歴マネージャー</ApplicationTitle>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <Company>おのソフト</Company>
     <Product>クリップボード履歴マネージャー</Product>
   </PropertyGroup>

@@ -52,7 +52,7 @@ public partial class App : System.Windows.Application
         _store = new HistoryStore();
         _messageWindow = new BackgroundMessageWindow("ClipboardHistoryManagerMessageWindow");
         _clipboardMonitor = new ClipboardMonitor(_store, _messageWindow);
-        _popup = new HistoryPopup(_store);
+        _popup = new HistoryPopup(_store, _clipboardMonitor);
         _popup.CycleCancelled += OnCycleCancelled;
         // 初回表示の描画コスト(数百ms)を画面外で先に払っておく。ここで払わないと、
         // 最初のサイクル操作中にUIスレッドがブロックされてキー入力を取りこぼす。

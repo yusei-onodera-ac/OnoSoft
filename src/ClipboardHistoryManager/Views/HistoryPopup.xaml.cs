@@ -17,6 +17,7 @@ namespace ClipboardHistoryManager.Views;
 public partial class HistoryPopup : Window
 {
     private readonly HistoryStore _store;
+    private readonly ClipboardMonitor _clipboardMonitor;
     private readonly ObservableCollection<ClipboardEntryViewModel> _allItems = new();
     private IntPtr _targetWindow;
     private bool _isCycling;
@@ -24,9 +25,10 @@ public partial class HistoryPopup : Window
     /// <summary>Raised when the user presses Escape while an Alt+Tab style cycle is in progress (no paste).</summary>
     public event Action? CycleCancelled;
 
-    public HistoryPopup(HistoryStore store)
+    public HistoryPopup(HistoryStore store, ClipboardMonitor clipboardMonitor)
     {
         _store = store;
+        _clipboardMonitor = clipboardMonitor;
         InitializeComponent();
     }
 
@@ -203,6 +205,10 @@ public partial class HistoryPopup : Window
 
         try
         {
+            // これから行う Clipboard.Set* は自分自身の書き込みなので、
+            // それをまた新しい履歴として記録してしまわないよう1回だけ無視させる。
+            _clipboardMonitor.SuppressNextChange();
+
             if (vm.IsImage && vm.Model.ImageData is { Length: > 0 } bytes)
             {
                 var image = new BitmapImage();

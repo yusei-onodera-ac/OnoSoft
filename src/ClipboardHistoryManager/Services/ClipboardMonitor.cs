@@ -15,6 +15,7 @@ public class ClipboardMonitor
 {
     private readonly HistoryStore _store;
     private readonly BackgroundMessageWindow _window;
+    private DateTime _suppressUntil = DateTime.MinValue;
 
     /// <summary>Raised on the UI thread whenever a new entry has been persisted.</summary>
     public event Action? HistoryChanged;
@@ -26,8 +27,24 @@ public class ClipboardMonitor
         _window.ClipboardChanged += OnClipboardChanged;
     }
 
+    /// <summary>
+    /// アプリ自身がこれからクリップボードへ書き込む(履歴からの貼り付けなど)直前に呼ぶ。
+    /// その書き込みによって発生する WM_CLIPBOARDUPDATE を1回だけ無視し、
+    /// 「貼り付けた項目がまた新しい履歴として重複登録される」問題を防ぐ。
+    /// </summary>
+    // WPF の Clipboard.SetText/SetImage は内部的にクリップボードを開閉する処理を複数回行うため、
+    // 1回の呼び出しでも WM_CLIPBOARDUPDATE が(実測で)2回連続して発生することがある。
+    // 単発フラグだと1回目だけ無視して2回目を取りこぼす(=重複登録される)ので、
+    // 短い時間窓ぶんまとめて無視する方式にしている。
+    private static readonly TimeSpan SuppressWindow = TimeSpan.FromMilliseconds(500);
+
+    public void SuppressNextChange() => _suppressUntil = DateTime.Now + SuppressWindow;
+
     private void OnClipboardChanged()
     {
+        if (DateTime.Now < _suppressUntil)
+            return;
+
         try
         {
             CaptureCurrentClipboard();
