@@ -6,6 +6,11 @@ on:
     tags:
       - "*-v*.*.*"
 
+# GitHub Release の作成には書き込み権限が必要。
+# リポジトリ/組織側のデフォルト設定が読み取り専用の場合に備えて明示する。
+permissions:
+  contents: write
+
 jobs:
   build-and-release:
     runs-on: windows-latest
