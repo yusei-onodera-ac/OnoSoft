@@ -25,6 +25,10 @@
                         Content="📍" Click="KeepOpenButton_Click"
                         AutomationProperties.AutomationId="KeepOpenButton"
                         ToolTip="常に表示(他をクリックしても閉じない。もう一度押すと解除)"/>
+                <Button x:Name="SettingsButton" DockPanel.Dock="Right" Style="{StaticResource OnoSoftIconButtonStyle}"
+                        Content="⚙" Click="SettingsButton_Click"
+                        AutomationProperties.AutomationId="SettingsButton"
+                        ToolTip="設定(テーマ・アクセントカラー・文字サイズ)"/>
                 <TextBlock DockPanel.Dock="Right" Text="おのソフト" Foreground="{DynamicResource SubTextBrush}"
                            FontSize="10" VerticalAlignment="Center" Margin="0,0,6,0"/>
                 <TextBlock Text="クリップボード履歴" Foreground="{DynamicResource TextBrush}"

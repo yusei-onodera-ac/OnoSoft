@@ -26,6 +26,9 @@ public partial class HistoryPopup : Window
     /// <summary>Raised when the user presses Escape while an Alt+Tab style cycle is in progress (no paste).</summary>
     public event Action? CycleCancelled;
 
+    /// <summary>Raised when the user clicks the header's settings (gear) button.</summary>
+    public event Action? SettingsRequested;
+
     public HistoryPopup(HistoryStore store, ClipboardMonitor clipboardMonitor)
     {
         _store = store;
@@ -179,6 +182,8 @@ public partial class HistoryPopup : Window
             ? "常に表示中(もう一度押すと解除)"
             : "常に表示(他をクリックしても閉じない)";
     }
+
+    private void SettingsButton_Click(object sender, RoutedEventArgs e) => SettingsRequested?.Invoke();
 
     private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
