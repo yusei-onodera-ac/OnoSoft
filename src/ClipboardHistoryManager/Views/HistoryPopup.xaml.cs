@@ -21,6 +21,7 @@ public partial class HistoryPopup : Window
     private readonly ObservableCollection<ClipboardEntryViewModel> _allItems = new();
     private IntPtr _targetWindow;
     private bool _isCycling;
+    private bool _keepOpen;
 
     /// <summary>Raised when the user presses Escape while an Alt+Tab style cycle is in progress (no paste).</summary>
     public event Action? CycleCancelled;
@@ -39,6 +40,9 @@ public partial class HistoryPopup : Window
     public void PrepareAndShow(IntPtr previousForegroundWindow)
     {
         _isCycling = false;
+        _keepOpen = false;
+        KeepOpenButton.Content = "📍";
+        KeepOpenButton.ToolTip = "常に表示(他をクリックしても閉じない)";
         _targetWindow = previousForegroundWindow;
         ReloadEntries();
         PositionNearCursor();
@@ -154,8 +158,26 @@ public partial class HistoryPopup : Window
 
     private void Window_Deactivated(object sender, EventArgs e)
     {
-        _isCycling = false;
+        if (_isCycling)
+        {
+            // Alt+Tab方式の候補切り替え中は、常に表示ボタンの状態にかかわらず確実に閉じる
+            _isCycling = false;
+            Hide();
+            return;
+        }
+
+        if (_keepOpen) return; // 「常に表示」中はフォーカスが外れても閉じない
+
         Hide();
+    }
+
+    private void KeepOpenButton_Click(object sender, RoutedEventArgs e)
+    {
+        _keepOpen = !_keepOpen;
+        KeepOpenButton.Content = _keepOpen ? "📌" : "📍";
+        KeepOpenButton.ToolTip = _keepOpen
+            ? "常に表示中(もう一度押すと解除)"
+            : "常に表示(他をクリックしても閉じない)";
     }
 
     private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)

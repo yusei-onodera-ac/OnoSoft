@@ -21,10 +21,14 @@
             </Grid.RowDefinitions>
 
             <DockPanel Grid.Row="0" Margin="2,0,0,8">
+                <Button x:Name="KeepOpenButton" DockPanel.Dock="Right" Style="{StaticResource OnoSoftIconButtonStyle}"
+                        Content="📍" Click="KeepOpenButton_Click"
+                        AutomationProperties.AutomationId="KeepOpenButton"
+                        ToolTip="常に表示(他をクリックしても閉じない。もう一度押すと解除)"/>
                 <TextBlock DockPanel.Dock="Right" Text="おのソフト" Foreground="{DynamicResource SubTextBrush}"
-                           FontSize="10" VerticalAlignment="Bottom" Margin="0,0,2,1"/>
+                           FontSize="10" VerticalAlignment="Center" Margin="0,0,6,0"/>
                 <TextBlock Text="クリップボード履歴" Foreground="{DynamicResource TextBrush}"
-                           FontSize="15" FontWeight="SemiBold"/>
+                           FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/>
             </DockPanel>
 
             <TextBox x:Name="SearchBox" Grid.Row="1" Height="30" Padding="8,5"
