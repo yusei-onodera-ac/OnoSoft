@@ -19,6 +19,10 @@ public partial class HistoryPopup : Window
     private readonly HistoryStore _store;
     private readonly ObservableCollection<ClipboardEntryViewModel> _allItems = new();
     private IntPtr _targetWindow;
+    private bool _isCycling;
+
+    /// <summary>Raised when the user presses Escape while an Alt+Tab style cycle is in progress (no paste).</summary>
+    public event Action? CycleCancelled;
 
     public HistoryPopup(HistoryStore store)
     {
@@ -32,6 +36,7 @@ public partial class HistoryPopup : Window
     /// </summary>
     public void PrepareAndShow(IntPtr previousForegroundWindow)
     {
+        _isCycling = false;
         _targetWindow = previousForegroundWindow;
         ReloadEntries();
         PositionNearCursor();
@@ -49,6 +54,65 @@ public partial class HistoryPopup : Window
             Hide();
         else
             PrepareAndShow(previousForegroundWindow);
+    }
+
+    /// <summary>
+    /// Alt+Tab スタイルの候補切り替えを開始する。ポップアップを表示し、最新の項目をハイライトする。
+    /// 呼び出し側(App)は物理的な Ctrl/Shift キーが離されたタイミングで <see cref="CommitCycle"/> を呼ぶ。
+    /// </summary>
+    public void BeginCycle(IntPtr previousForegroundWindow)
+    {
+        _isCycling = true;
+        _targetWindow = previousForegroundWindow;
+        SearchBox.Text = string.Empty;
+        ReloadEntries();
+        PositionNearCursor();
+
+        // Activate() (フォーカス移動)はしない: サイクル中はキー入力の取りこぼしを
+        // 減らすため最小限の処理に留める。確定時に SetForegroundWindow で元のアプリへ戻す。
+        Show();
+
+        if (HistoryList.Items.Count > 0)
+            HistoryList.SelectedIndex = 0;
+    }
+
+    /// <summary>
+    /// 初回表示時のWPF初期描画コスト(数百msかかることがある)を、画面外での
+    /// 一度きりのShow/Hideで先に払っておく。これをしないと、初回のAlt+Tab方式の
+    /// 候補切り替えでUIスレッドがブロックされ、その間のキー入力を取りこぼす。
+    /// </summary>
+    public void WarmUp()
+    {
+        var originalLeft = Left;
+        var originalTop = Top;
+        Left = -5000;
+        Top = -5000;
+        Show();
+        Hide();
+        Left = originalLeft;
+        Top = originalTop;
+    }
+
+    /// <summary>候補切り替え中に、ハイライトを次の項目へ進める(末尾まで来たら先頭に戻る)。</summary>
+    public void AdvanceCycle()
+    {
+        if (!_isCycling || HistoryList.Items.Count == 0) return;
+
+        var next = (HistoryList.SelectedIndex + 1) % HistoryList.Items.Count;
+        HistoryList.SelectedIndex = next;
+        HistoryList.ScrollIntoView(HistoryList.SelectedItem);
+    }
+
+    /// <summary>修飾キーが離されたときに呼ばれる。ハイライト中の項目を確定し、貼り付ける。</summary>
+    public void CommitCycle()
+    {
+        if (!_isCycling) return;
+        _isCycling = false;
+
+        if (HistoryList.SelectedItem is ClipboardEntryViewModel vm)
+            _ = CopyAndPasteAsync(vm);
+        else
+            Hide();
     }
 
     private void ReloadEntries()
@@ -86,14 +150,26 @@ public partial class HistoryPopup : Window
 
     private void SearchBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => ApplyFilter();
 
-    private void Window_Deactivated(object sender, EventArgs e) => Hide();
+    private void Window_Deactivated(object sender, EventArgs e)
+    {
+        _isCycling = false;
+        Hide();
+    }
 
     private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (e.Key == Key.Escape)
+        {
+            var wasCycling = _isCycling;
+            _isCycling = false;
             Hide();
+            if (wasCycling) CycleCancelled?.Invoke();
+        }
         else if (e.Key == Key.Enter && HistoryList.SelectedItem is ClipboardEntryViewModel vm)
+        {
+            _isCycling = false;
             _ = CopyAndPasteAsync(vm);
+        }
     }
 
     private void HistoryList_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)

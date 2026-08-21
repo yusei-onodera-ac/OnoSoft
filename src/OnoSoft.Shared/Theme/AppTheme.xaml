@@ -3,7 +3,12 @@
 
     <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-    <!-- おのソフト共通カラーパレット。各アプリの App.xaml からマージして使う。 -->
+    <!--
+        おのソフト共通カラーパレット。既定値はダークテーマ。
+        ユーザー設定は OnoSoft.Shared.Theme.ThemeApplier.Apply() が Application.Resources に
+        同名キーで上書きする。ここから先の全スタイル/画面は DynamicResource で参照することで、
+        設定変更が開いている画面にも即座に反映される。
+    -->
     <SolidColorBrush x:Key="BgBrush" Color="#1E1F26"/>
     <SolidColorBrush x:Key="PanelBrush" Color="#2A2B36"/>
     <SolidColorBrush x:Key="AccentBrush" Color="#5B8CFF"/>
@@ -11,12 +16,13 @@
     <SolidColorBrush x:Key="SubTextBrush" Color="#9A9CAC"/>
     <SolidColorBrush x:Key="HoverBrush" Color="#353748"/>
     <SolidColorBrush x:Key="BorderBrush" Color="#3A3C4A"/>
+    <system:Double xmlns:system="clr-namespace:System;assembly=mscorlib" x:Key="PopupFontSize">13</system:Double>
 
     <!-- ポップアップ/パネル内の小さいアイコンボタン(ピン留め・削除など)の共通スタイル -->
     <Style x:Key="OnoSoftIconButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Foreground" Value="{StaticResource SubTextBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource SubTextBrush}"/>
         <Setter Property="Width" Value="26"/>
         <Setter Property="Height" Value="26"/>
         <Setter Property="Cursor" Value="Hand"/>
@@ -28,7 +34,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource HoverBrush}"/>
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource HoverBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -38,10 +44,43 @@
 
     <!-- 常駐ポップアップの外枠(角丸パネル)に使う共通スタイル -->
     <Style x:Key="OnoSoftPopupBorderStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource BgBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource BgBrush}"/>
         <Setter Property="CornerRadius" Value="10"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <!-- 汎用ボタン(設定画面などの「保存」「キャンセル」用) -->
+    <Style x:Key="OnoSoftButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{DynamicResource PanelBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="Padding" Value="14,7"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource HoverBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 設定画面の「保存」など強調ボタン用(アクセントカラー背景) -->
+    <Style x:Key="OnoSoftPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource OnoSoftButtonStyle}">
+        <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource PanelBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
     </Style>
 
 </ResourceDictionary>

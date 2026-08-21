@@ -1,0 +1,102 @@
+<Window x:Class="ClipboardHistoryManager.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="設定 - クリップボード履歴マネージャー (おのソフト)"
+        Width="380" SizeToContent="Height"
+        Background="{DynamicResource BgBrush}"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        ShowInTaskbar="True">
+
+    <Window.Resources>
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource SubTextBrush}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Margin" Value="0,16,0,6"/>
+        </Style>
+        <Style x:Key="LabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style x:Key="SwatchButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="14" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <StackPanel Margin="20,16,20,20">
+
+        <TextBlock Text="クリップボード履歴マネージャー" Foreground="{DynamicResource TextBrush}" FontSize="16" FontWeight="SemiBold"/>
+        <TextBlock Text="おのソフト" Foreground="{DynamicResource AccentBrush}" FontSize="12" Margin="0,2,0,0"/>
+
+        <!-- テーマ -->
+        <TextBlock Text="テーマ" Style="{StaticResource SectionHeaderStyle}"/>
+        <StackPanel Orientation="Horizontal">
+            <RadioButton x:Name="DarkThemeRadio" Content="ダーク" GroupName="Theme"
+                         Foreground="{DynamicResource TextBrush}" Margin="0,0,20,0" Checked="ThemeRadio_Checked"/>
+            <RadioButton x:Name="LightThemeRadio" Content="ライト" GroupName="Theme"
+                         Foreground="{DynamicResource TextBrush}" Checked="ThemeRadio_Checked"/>
+        </StackPanel>
+
+        <!-- アクセントカラー -->
+        <TextBlock Text="アクセントカラー" Style="{StaticResource SectionHeaderStyle}"/>
+        <WrapPanel x:Name="SwatchPanel" Orientation="Horizontal"/>
+
+        <StackPanel Orientation="Horizontal" Margin="0,10,0,0" VerticalAlignment="Center">
+            <TextBlock Text="カスタム(#RRGGBB):" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <TextBox x:Name="CustomColorBox" Width="90" Padding="4,3"
+                     Background="{DynamicResource PanelBrush}" Foreground="{DynamicResource TextBrush}"
+                     BorderThickness="0" CaretBrush="{DynamicResource TextBrush}"
+                     TextChanged="CustomColorBox_TextChanged"/>
+        </StackPanel>
+
+        <!-- 文字サイズ -->
+        <TextBlock Text="文字サイズ" Style="{StaticResource SectionHeaderStyle}"/>
+        <StackPanel Orientation="Horizontal">
+            <RadioButton x:Name="FontSmallRadio" Content="小" GroupName="FontSize"
+                         Foreground="{DynamicResource TextBrush}" Margin="0,0,16,0" Checked="FontSizeRadio_Checked" Tag="12"/>
+            <RadioButton x:Name="FontMediumRadio" Content="標準" GroupName="FontSize"
+                         Foreground="{DynamicResource TextBrush}" Margin="0,0,16,0" Checked="FontSizeRadio_Checked" Tag="13"/>
+            <RadioButton x:Name="FontLargeRadio" Content="大" GroupName="FontSize"
+                         Foreground="{DynamicResource TextBrush}" Margin="0,0,16,0" Checked="FontSizeRadio_Checked" Tag="16"/>
+            <RadioButton x:Name="FontXLargeRadio" Content="特大" GroupName="FontSize"
+                         Foreground="{DynamicResource TextBrush}" Checked="FontSizeRadio_Checked" Tag="19"/>
+        </StackPanel>
+
+        <!-- アップデート -->
+        <TextBlock Text="アップデート" Style="{StaticResource SectionHeaderStyle}"/>
+        <StackPanel Orientation="Horizontal">
+            <TextBlock x:Name="VersionText" Text="現在のバージョン: -" Style="{StaticResource LabelStyle}" VerticalAlignment="Center"/>
+        </StackPanel>
+        <Button x:Name="CheckUpdateButton" Content="アップデートを確認" Style="{StaticResource OnoSoftButtonStyle}"
+                HorizontalAlignment="Left" Margin="0,8,0,0" Click="CheckUpdateButton_Click"/>
+        <TextBlock x:Name="UpdateStatusText" Text="" Foreground="{DynamicResource SubTextBrush}" FontSize="12" Margin="0,8,0,0"/>
+
+        <!-- このアプリについて -->
+        <TextBlock Text="このアプリについて" Style="{StaticResource SectionHeaderStyle}"/>
+        <TextBlock Foreground="{DynamicResource SubTextBrush}" FontSize="12" TextWrapping="Wrap">
+            おのソフトは、Windows向けの小さくて便利なフリーソフトのシリーズです。
+        </TextBlock>
+        <Button x:Name="OpenGitHubButton" Content="GitHubで見る / アンインストール方法" Style="{StaticResource OnoSoftButtonStyle}"
+                HorizontalAlignment="Left" Margin="0,8,0,0" Click="OpenGitHubButton_Click"/>
+
+        <!-- 保存/キャンセル -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="キャンセル" Style="{StaticResource OnoSoftButtonStyle}" Margin="0,0,10,0" Click="CancelButton_Click"/>
+            <Button Content="保存" Style="{StaticResource OnoSoftPrimaryButtonStyle}" Click="SaveButton_Click"/>
+        </StackPanel>
+
+    </StackPanel>
+</Window>

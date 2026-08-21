@@ -51,10 +51,54 @@ jobs:
           Compress-Archive -Path "publish/${env:APP_NAME}/*" -DestinationPath $zipPath
           echo "ZIP_PATH=$zipPath" >> $env:GITHUB_ENV
 
-      - name: Create GitHub Release
+      # installer/<AppName>.iss がある場合だけ、管理者権限不要のインストーラーもビルドする。
+      # 「アプリと機能」から普通にアンインストールでき、同じバージョン情報で再インストールすれば
+      # 上書き更新されるため、配布・更新・アンインストールがまとめて簡単になる。
+      - name: Build installer with Inno Setup (if present)
+        shell: pwsh
+        run: |
+          $issPath = "installer/${env:APP_NAME}.iss"
+          if (-not (Test-Path $issPath)) {
+            Write-Output "No installer script for ${env:APP_NAME} — skipping installer build."
+            echo "INSTALLER_BUILT=false" >> $env:GITHUB_ENV
+            exit 0
+          }
+
+          $iscc = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+          if (-not $iscc) {
+            choco install innosetup -y --no-progress | Out-Null
+            $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          } else {
+            $iscc = $iscc.Source
+          }
+
+          $sourceDir = (Resolve-Path "publish/${env:APP_NAME}").Path
+          & $iscc $issPath "/DMyAppVersion=${env:VERSION}" "/DSourceDir=$sourceDir"
+
+          $setupExe = Get-ChildItem -Path "installer" -Filter "${env:APP_NAME}-Setup-*.exe" | Select-Object -First 1
+          if ($null -eq $setupExe) {
+            Write-Error "Installer build did not produce an output file."
+            exit 1
+          }
+          echo "INSTALLER_PATH=$($setupExe.FullName)" >> $env:GITHUB_ENV
+          echo "INSTALLER_BUILT=true" >> $env:GITHUB_ENV
+
+      - name: Create GitHub Release (zip only)
+        if: env.INSTALLER_BUILT != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: "${{ env.APP_NAME }} v${{ env.VERSION }}"
           generate_release_notes: true
           files: ${{ env.ZIP_PATH }}
+
+      - name: Create GitHub Release (zip + installer)
+        if: env.INSTALLER_BUILT == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "${{ env.APP_NAME }} v${{ env.VERSION }}"
+          generate_release_notes: true
+          files: |
+            ${{ env.ZIP_PATH }}
+            ${{ env.INSTALLER_PATH }}

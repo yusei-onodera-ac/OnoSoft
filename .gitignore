@@ -3,6 +3,8 @@ bin/
 obj/
 publish/
 *.user
+installer/*.exe
+installer/Output/
 
 # IDE
 .vs/

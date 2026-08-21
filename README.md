@@ -14,19 +14,21 @@ src/
   ClipboardHistoryManager/   シリーズ第1弾: クリップボード履歴マネージャー
 templates/
   NewAppTemplate/            新しいアプリを始めるための雛形
+installer/
+  ClipboardHistoryManager.iss  管理者権限不要のインストーラー(Inno Setup)
 docs/
   BRANDING.md                シリーズの命名規則・配色・アイコン方針
-  RELEASE_PROCESS.md         バージョニング・GitHub Releasesでの配布手順
+  RELEASE_PROCESS.md         バージョニング・GitHub Releasesでの配布手順(インストーラー含む)
 site/
   index.html                 配布サイト(GitHub Pages想定)の雛形
-.github/workflows/release.yml  タグ push で自動ビルド・GitHub Release作成
+.github/workflows/release.yml  タグ push で自動ビルド・GitHub Release作成(インストーラーも)
 ```
 
 ## アプリ一覧
 
 | アプリ | 概要 | ステータス |
 |---|---|---|
-| [クリップボード履歴マネージャー](src/ClipboardHistoryManager) | コピー履歴をタスクトレイから呼び出せる常駐アプリ | 動作確認済み (v1.0.0 相当) |
+| [クリップボード履歴マネージャー](src/ClipboardHistoryManager) | コピー履歴をタスクトレイから呼び出せる常駐アプリ。テーマ設定・インストーラー対応済み | 動作確認済み (v1.1.0) |
 
 ## ビルド
 
